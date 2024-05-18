@@ -241,7 +241,7 @@
         function checkWindowSize() {
             const maximizeMessage = document.getElementById('maximize-message');
             const parkingLot = document.getElementById('parking-lot');
-            const isMaximized = window.innerWidth >= screen.width - 20 && window.innerHeight >= screen.height - 100;
+            const isMaximized = window.innerWidth >= screen.availWidth - 20 && window.innerHeight >= screen.availHeight - 100;
             if (!isMaximized) {
                 maximizeMessage.style.display = 'block';
                 parkingLot.classList.add('blur');
