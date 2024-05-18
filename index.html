@@ -12,10 +12,21 @@
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f4;
         }
-        #parking-lot {
+        #container {
             position: relative;
             width: 100vw;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #parking-lot {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 1920px;
+            max-height: 1080px;
             background-image: url('https://static.wixstatic.com/media/18410c_d75797bbf4dc4473968456f7fe765fef~mv2.png');
             background-size: contain;
             background-position: center;
@@ -192,8 +203,10 @@
     <div id="maximize-message">
         Please maximize the window for best results.
     </div>
-    <div id="parking-lot">
-        <!-- Parking lot area -->
+    <div id="container">
+        <div id="parking-lot">
+            <!-- Parking lot area -->
+        </div>
     </div>
     <div id="size-input">
         <label for="truck-width">Width (5-10 ft):</label>
