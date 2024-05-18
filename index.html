@@ -21,6 +21,10 @@
             background-position: center;
             background-repeat: no-repeat;
         }
+        .blur {
+            filter: blur(5px);
+            pointer-events: none;
+        }
         .food-truck {
             position: absolute;
             cursor: grab;
@@ -47,6 +51,19 @@
         }
         .selected {
             border: 2px solid blue;
+        }
+        #maximize-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            display: none;
         }
         #trash-can {
             position: fixed;
@@ -172,6 +189,9 @@
     </style>
 </head>
 <body>
+    <div id="maximize-message">
+        Please maximize the window for best results.
+    </div>
     <div id="parking-lot">
         <!-- Parking lot area -->
     </div>
@@ -217,6 +237,22 @@
         let availableNumbers = [];
         let rulerEnabled = false;
         let rulerPoints = [];
+
+        function checkWindowSize() {
+            const maximizeMessage = document.getElementById('maximize-message');
+            const parkingLot = document.getElementById('parking-lot');
+            const isMaximized = window.innerWidth >= screen.width - 20 && window.innerHeight >= screen.height - 100;
+            if (!isMaximized) {
+                maximizeMessage.style.display = 'block';
+                parkingLot.classList.add('blur');
+            } else {
+                maximizeMessage.style.display = 'none';
+                parkingLot.classList.remove('blur');
+            }
+        }
+
+        window.addEventListener('resize', checkWindowSize);
+        window.addEventListener('load', checkWindowSize);
 
         function createOrUpdateTruck() {
             const width = parseInt(document.getElementById('truck-width').value, 10);
