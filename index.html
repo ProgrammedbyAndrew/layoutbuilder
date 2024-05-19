@@ -75,6 +75,18 @@
             z-index: 20;
             display: none;
         }
+        #permanent-message {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
         #menu {
             position: fixed;
             bottom: 20px;
@@ -223,6 +235,9 @@
         <button class="button" onclick="enableRuler()">Ruler</button>
         <button class="button" onclick="clearRuler()">Clear</button>
         <div id="ruler-measurement"></div>
+    </div>
+    <div id="permanent-message">
+        Maximize the screen for best results
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
