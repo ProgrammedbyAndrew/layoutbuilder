@@ -62,9 +62,6 @@
         .selected {
             border: 2px solid blue;
         }
-        .multi-selected {
-            border: 2px solid green;
-        }
         #maximize-message {
             position: fixed;
             top: 50%;
@@ -77,17 +74,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 20;
             display: none;
-        }
-        #trash-can {
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            width: 50px;
-            height: 50px;
-            background: url('trash_icon.png') no-repeat center center;
-            background-size: cover;
-            visibility: hidden;
-            z-index: 10;
         }
         #menu {
             position: fixed;
@@ -199,13 +185,6 @@
             margin-top: 5px;
             font-size: 12px;
         }
-        #selection-box {
-            position: absolute;
-            border: 2px dashed #000;
-            background-color: rgba(0, 0, 0, 0.1);
-            display: none;
-            z-index: 1000;
-        }
     </style>
 </head>
 <body>
@@ -226,7 +205,6 @@
         <button class="button" id="truck-action-button" style="display: none;" onclick="createOrUpdateTruck()">Update</button>
     </div>
     <div id="message-box">Your food truck has been created!</div>
-    <div id="trash-can"></div>
     <div id="menu">
         <button class="menu-button" onclick="rotateTruck(90)">Rotate 90°</button>
         <button class="menu-button" onclick="rotateTruck(180)">Rotate 180°</button>
@@ -246,7 +224,6 @@
         <button class="button" onclick="clearRuler()">Clear</button>
         <div id="ruler-measurement"></div>
     </div>
-    <div id="selection-box"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -254,16 +231,12 @@
         const pixelToFootRatio = 2.100;  // Adjusted pixel-to-foot ratio
         let truckCount = 0;
         let selectedTruck = null;
-        let multiSelect = false;
-        let selectedTrucks = [];
         let currentSize = { width: 8, height: 24 }; // Default size
         let isDragging = false;
         let shiftX, shiftY;
         let availableNumbers = [];
         let rulerEnabled = false;
         let rulerPoints = [];
-        let selectionBox = document.getElementById('selection-box');
-        let selectionStartX, selectionStartY;
 
         function createOrUpdateTruck() {
             const width = parseInt(document.getElementById('truck-width').value, 10);
@@ -285,12 +258,6 @@
         }
 
         function createTruck() {
-            addNewTruck();
-            resetButtons();
-            unselectTruck(); // Automatically unselect after creating truck
-        }
-
-        function addNewTruck() {
             const width = parseInt(document.getElementById('truck-width').value, 10);
             const length = parseInt(document.getElementById('truck-length').value, 10);
             if (!currentSize || !(width >= 5 && width <= 10 && length >= 10 && length <= 40)) {
@@ -379,11 +346,9 @@
                 isDragging = false;
                 document.removeEventListener('mousemove', onMouseMove);
                 truck.onmouseup = null;
-                document.getElementById('trash-can').style.visibility = 'hidden'; // Hide trash can
                 unselectTruck(); // Automatically unselect after moving truck
             }, { once: true });
 
-            document.getElementById('trash-can').style.visibility = 'visible'; // Show trash can
             truck.ondragstart = function() {
                 return false;
             };
@@ -391,30 +356,17 @@
 
         function selectTruck(e) {
             e.stopPropagation(); // Prevent the parking lot click event
-            if (e.shiftKey) {
-                // Multi-select logic
-                const truck = e.target.closest('.food-truck');
-                if (truck.classList.contains('multi-selected')) {
-                    truck.classList.remove('multi-selected');
-                    selectedTrucks = selectedTrucks.filter(t => t !== truck);
-                } else {
-                    truck.classList.add('multi-selected');
-                    selectedTrucks.push(truck);
-                }
-            } else {
-                // Single select logic
-                if (selectedTruck) {
-                    selectedTruck.classList.remove('selected');
-                }
-                selectedTruck = e.target.closest('.food-truck');
-                selectedTruck.classList.add('selected');
-                document.getElementById('menu').style.display = 'block';
-                document.getElementById('truck-width').value = Math.round(selectedTruck.offsetWidth / pixelToFootRatio);
-                document.getElementById('truck-length').value = Math.round(selectedTruck.offsetHeight / pixelToFootRatio);
-                document.getElementById('truck-action-button').innerText = 'Update'; // Change button text to Update
-                document.getElementById('truck-action-button').style.display = 'block';
-                document.getElementById('get-truck').style.display = 'none';
+            if (selectedTruck) {
+                selectedTruck.classList.remove('selected');
             }
+            selectedTruck = e.target.closest('.food-truck');
+            selectedTruck.classList.add('selected');
+            document.getElementById('menu').style.display = 'block';
+            document.getElementById('truck-width').value = Math.round(selectedTruck.offsetWidth / pixelToFootRatio);
+            document.getElementById('truck-length').value = Math.round(selectedTruck.offsetHeight / pixelToFootRatio);
+            document.getElementById('truck-action-button').innerText = 'Update'; // Change button text to Update
+            document.getElementById('truck-action-button').style.display = 'block';
+            document.getElementById('get-truck').style.display = 'none';
         }
 
         function unselectTruck() {
@@ -424,8 +376,6 @@
                 document.getElementById('menu').style.display = 'none';
                 resetButtons();
             }
-            selectedTrucks.forEach(truck => truck.classList.remove('multi-selected'));
-            selectedTrucks = [];
         }
 
         function rotateTruck(degrees) {
@@ -461,26 +411,11 @@
                 selectedTruck = null;
                 resetButtons();
             }
-            selectedTrucks.forEach(truck => {
-                const truckNumber = parseInt(truck.querySelector('.truck-number').textContent, 10);
-                availableNumbers.push(truckNumber);
-                availableNumbers.sort((a, b) => a - b); // Keep the numbers sorted
-                truck.remove();
-            });
-            selectedTrucks = [];
         }
 
         document.getElementById('parking-lot').addEventListener('mousedown', function(event) {
             if (event.target.id === 'parking-lot') {
                 unselectTruck();
-                multiSelect = true;
-                selectionStartX = event.clientX;
-                selectionStartY = event.clientY;
-                selectionBox.style.left = `${selectionStartX}px`;
-                selectionBox.style.top = `${selectionStartY}px`;
-                selectionBox.style.width = `0px`;
-                selectionBox.style.height = `0px`;
-                selectionBox.style.display = 'block';
             } else if (event.target.closest('.food-truck')) {
                 selectTruck(event);
             }
@@ -488,33 +423,6 @@
 
         document.addEventListener('mouseup', function() {
             isDragging = false;
-            document.getElementById('trash-can').style.visibility = 'hidden'; // Hide trash can on mouse up
-            if (multiSelect) {
-                multiSelect = false;
-                selectionBox.style.display = 'none';
-                const boxRect = selectionBox.getBoundingClientRect();
-                document.querySelectorAll('.food-truck').forEach(truck => {
-                    const truckRect = truck.getBoundingClientRect();
-                    if (truckRect.left >= boxRect.left && truckRect.right <= boxRect.right &&
-                        truckRect.top >= boxRect.top && truckRect.bottom <= boxRect.bottom) {
-                        truck.classList.add('multi-selected');
-                        selectedTrucks.push(truck);
-                    }
-                });
-            }
-        });
-
-        document.addEventListener('mousemove', function(event) {
-            if (multiSelect) {
-                const currentX = event.clientX;
-                const currentY = event.clientY;
-                const width = Math.abs(currentX - selectionStartX);
-                const height = Math.abs(currentY - selectionStartY);
-                selectionBox.style.width = `${width}px`;
-                selectionBox.style.height = `${height}px`;
-                selectionBox.style.left = `${Math.min(currentX, selectionStartX)}px`;
-                selectionBox.style.top = `${Math.min(currentY, selectionStartY)}px`;
-            }
         });
 
         function getNextTruckNumber() {
@@ -645,7 +553,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            const defaultConfig = [{"truckNumber":1,"width":8,"height":20,"left":"1175px","top":"111.5px","rotation":0},{"truckNumber":2,"width":8,"height":20,"left":"1175px","top":"147.5px","rotation":0},{"truckNumber":3,"width":8,"height":20,"left":"1176px","top":"195.5px","rotation":0},{"truckNumber":4,"width":8,"height":20,"left":"1176px","top":"230.5px","rotation":0},{"truckNumber":5,"width":8,"height":24,"left":"1174px","top":"338.5px","rotation":0},{"truckNumber":6,"width":8,"height":24,"left":"1174px","top":"379.5px","rotation":0},{"truckNumber":7,"width":8,"height":12,"left":"713px","top":"327.5px","rotation":0},{"truckNumber":8,"width":8,"height":20,"left":"726.223px","top":"344.277px","rotation":90},{"truckNumber":9,"width":8,"height":24,"left":"765px","top":"367.5px","rotation":0},{"truckNumber":10,"width":8,"height":24,"left":"765px","top":"410.5px","rotation":0},{"truckNumber":11,"width":8,"height":24,"left":"731.992px","top":"422.508px","rotation":90},{"truckNumber":12,"width":8,"height":24,"left":"688.984px","top":"423.516px","rotation":90},{"truckNumber":13,"width":8,"height":21,"left":"667px","top":"449.5px","rotation":0},{"truckNumber":14,"width":8,"height":18,"left":"638.848px","top":"461.652px","rotation":90},{"truckNumber":15,"width":8,"height":10,"left":"615px","top":"468.5px","rotation":0},{"truckNumber":16,"width":8,"height":24,"left":"637.992px","top":"496.508px","rotation":90},{"truckNumber":17,"width":8,"height":24,"left":"666px","top":"515.5px","rotation":0},{"truckNumber":18,"width":8,"height":24,"left":"666px","top":"560.5px","rotation":0},{"truckNumber":19,"width":8,"height":24,"left":"621.984px","top":"573.516px","rotation":90},{"truckNumber":20,"width":8,"height":24,"left":"574.992px","top":"591.508px","rotation":90},{"truckNumber":21,"width":8,"height":24,"left":"531.992px","top":"592.508px","rotation":90},{"truckNumber":22,"width":8,"height":24,"left":"495.984px","top":"620.516px","rotation":90},{"truckNumber":23,"width":8,"height":24,"left":"452.984px","top":"620.516px","rotation":90},{"truckNumber":24,"width":8,"height":20,"left":"429px","top":"601.5px","rotation":0},{"truckNumber":25,"width":8,"height":20,"left":"429px","top":"564.5px","rotation":0},{"truckNumber":26,"width":8,"height":20,"left":"428px","top":"508.5px","rotation":0},{"truckNumber":27,"width":8,"height":24,"left":"456.969px","top":"496.531px","rotation":90},{"truckNumber":28,"width":8,"height":16,"left":"488px","top":"504.5px","rotation":0},{"truckNumber":29,"width":8,"height":15,"left":"490px","top":"474.5px","rotation":0},{"truckNumber":30,"width":8,"height":17,"left":"464.277px","top":"467.199px","rotation":90},{"truckNumber":31,"width":8,"height":19,"left":"434.059px","top":"465.441px","rotation":90},{"truckNumber":32,"width":8,"height":24,"left":"428px","top":"391.5px","rotation":0},{"truckNumber":33,"width":8,"height":24,"left":"429px","top":"348.5px","rotation":0},{"truckNumber":34,"width":8,"height":24,"left":"455.992px","top":"337.508px","rotation":90},{"truckNumber":35,"width":8,"height":16,"left":"493px","top":"326.5px","rotation":0},{"truckNumber":36,"width":8,"height":20,"left":"534.238px","top":"342.262px","rotation":90},{"truckNumber":37,"width":8,"height":17,"left":"566.363px","top":"346.129px","rotation":90},{"truckNumber":38,"width":8,"height":20,"left":"633.238px","top":"344.262px","rotation":90},{"truckNumber":39,"width":8,"height":17,"left":"666.684px","top":"347.816px","rotation":90},{"truckNumber":40,"width":8,"height":19,"left":"663.113px","top":"392.379px","rotation":90},{"truckNumber":41,"width":8,"height":20,"left":"626.73px","top":"392.754px","rotation":90},{"truckNumber":42,"width":8,"height":20,"left":"566.246px","top":"391.254px","rotation":90},{"truckNumber":43,"width":8,"height":20,"left":"528.246px","top":"392.254px","rotation":90},{"truckNumber":44,"width":8,"height":14,"left":"569.961px","top":"469.5px","rotation":90},{"truckNumber":45,"width":8,"height":15,"left":"545.664px","top":"467.812px","rotation":90},{"truckNumber":46,"width":8,"height":13,"left":"522.812px","top":"470.688px","rotation":90},{"truckNumber":47,"width":6,"height":16,"left":"516px","top":"489.5px","rotation":0},{"truckNumber":48,"width":8,"height":20,"left":"534.246px","top":"503.254px","rotation":90},{"truckNumber":49,"width":8,"height":18,"left":"568.738px","top":"505.754px","rotation":90},{"truckNumber":50,"width":6,"height":14,"left":"588px","top":"488.5px","rotation":0},{"truckNumber":51,"width":8,"height":16,"left":"578.496px","top":"548.004px","rotation":90},{"truckNumber":52,"width":8,"height":18,"left":"548.871px","top":"547.629px","rotation":90},{"truckNumber":53,"width":8,"height":19,"left":"518.059px","top":"546.441px","rotation":90},{"truckNumber":54,"width":8,"height":10,"left":"436px","top":"295.5px","rotation":0},{"truckNumber":55,"width":8,"height":12,"left":"572px","top":"314.5px","rotation":0},{"truckNumber":56,"width":8,"height":10,"left":"628px","top":"314.5px","rotation":0},{"truckNumber":57,"width":8,"height":20,"left":"444px","top":"240.5px","rotation":0},{"truckNumber":58,"width":8,"height":20,"left":"444px","top":"205.5px","rotation":0},{"truckNumber":59,"width":8,"height":15,"left":"444px","top":"179.5px","rotation":0},{"truckNumber":60,"width":8,"height":19,"left":"472.059px","top":"169.441px","rotation":90},{"truckNumber":61,"width":8,"height":16,"left":"490px","top":"192.5px","rotation":0},{"truckNumber":62,"width":8,"height":17,"left":"489px","top":"221.5px","rotation":0},{"truckNumber":63,"width":8,"height":13,"left":"488px","top":"252.5px","rotation":0},{"truckNumber":64,"width":8,"height":15,"left":"677px","top":"311.5px","rotation":0},{"truckNumber":65,"width":5,"height":13,"left":"613px","top":"486.5px","rotation":0}];
+            const defaultConfig = [{"truckNumber":1,"width":8,"height":20,"left":"1193px","top":"178.5px","rotation":0},{"truckNumber":2,"width":8,"height":18,"left":"1193px","top":"224.5px","rotation":0},{"truckNumber":3,"width":8,"height":18,"left":"1194px","top":"282.5px","rotation":0},{"truckNumber":4,"width":8,"height":20,"left":"1195px","top":"322.5px","rotation":0},{"truckNumber":5,"width":8,"height":22,"left":"1191px","top":"460.5px","rotation":0},{"truckNumber":6,"width":8,"height":24,"left":"1190px","top":"509.5px","rotation":0},{"truckNumber":7,"width":8,"height":12,"left":"634px","top":"447.5px","rotation":0},{"truckNumber":8,"width":8,"height":18,"left":"645.117px","top":"466.375px","rotation":90},{"truckNumber":9,"width":8,"height":24,"left":"701px","top":"486.5px","rotation":0},{"truckNumber":10,"width":8,"height":24,"left":"702px","top":"538.5px","rotation":0},{"truckNumber":11,"width":8,"height":24,"left":"668.184px","top":"559.309px","rotation":90},{"truckNumber":12,"width":8,"height":24,"left":"617.176px","top":"559.316px","rotation":90},{"truckNumber":13,"width":8,"height":21,"left":"579px","top":"580.5px","rotation":0},{"truckNumber":14,"width":8,"height":18,"left":"547.344px","top":"599.148px","rotation":90},{"truckNumber":15,"width":8,"height":10,"left":"511px","top":"608.5px","rotation":0},{"truckNumber":16,"width":8,"height":24,"left":"551.184px","top":"644.309px","rotation":90},{"truckNumber":17,"width":8,"height":24,"left":"573px","top":"679.5px","rotation":0},{"truckNumber":18,"width":8,"height":19,"left":"572px","top":"734.5px","rotation":0},{"truckNumber":19,"width":8,"height":22,"left":"527.848px","top":"746.598px","rotation":90},{"truckNumber":20,"width":8,"height":22,"left":"476.465px","top":"769.012px","rotation":90},{"truckNumber":21,"width":8,"height":22,"left":"426.566px","top":"768.902px","rotation":90},{"truckNumber":22,"width":8,"height":20,"left":"363.258px","top":"804.211px","rotation":90},{"truckNumber":23,"width":8,"height":22,"left":"314.559px","top":"800.91px","rotation":90},{"truckNumber":24,"width":8,"height":23,"left":"279px","top":"784.5px","rotation":0},{"truckNumber":25,"width":8,"height":24,"left":"279px","top":"730.5px","rotation":0},{"truckNumber":26,"width":8,"height":17,"left":"284px","top":"663.5px","rotation":0},{"truckNumber":27,"width":8,"height":24,"left":"319.363px","top":"648.121px","rotation":90},{"truckNumber":28,"width":8,"height":14,"left":"360px","top":"650.5px","rotation":0},{"truckNumber":29,"width":8,"height":12,"left":"360px","top":"622.5px","rotation":0},{"truckNumber":30,"width":8,"height":16,"left":"332.969px","top":"614.484px","rotation":90},{"truckNumber":31,"width":8,"height":17,"left":"294.941px","top":"613.527px","rotation":90},{"truckNumber":32,"width":8,"height":24,"left":"289px","top":"529.5px","rotation":0},{"truckNumber":33,"width":8,"height":24,"left":"289px","top":"475.5px","rotation":0},{"truckNumber":34,"width":8,"height":24,"left":"327.574px","top":"458.902px","rotation":90},{"truckNumber":35,"width":8,"height":16,"left":"361px","top":"437.5px","rotation":0},{"truckNumber":36,"width":8,"height":20,"left":"416.633px","top":"461.859px","rotation":90},{"truckNumber":37,"width":8,"height":17,"left":"456.91px","top":"466.574px","rotation":90},{"truckNumber":38,"width":8,"height":20,"left":"539.031px","top":"463.461px","rotation":90},{"truckNumber":39,"width":8,"height":17,"left":"581.777px","top":"466.707px","rotation":90},{"truckNumber":40,"width":8,"height":19,"left":"590.449px","top":"526.02px","rotation":90},{"truckNumber":41,"width":8,"height":20,"left":"543.523px","top":"524.953px","rotation":90},{"truckNumber":42,"width":8,"height":20,"left":"458.039px","top":"520.453px","rotation":90},{"truckNumber":43,"width":8,"height":20,"left":"411.039px","top":"520.453px","rotation":90},{"truckNumber":44,"width":8,"height":14,"left":"470.66px","top":"617.801px","rotation":90},{"truckNumber":45,"width":8,"height":15,"left":"438.305px","top":"615.156px","rotation":90},{"truckNumber":46,"width":8,"height":13,"left":"407.555px","top":"617.938px","rotation":90},{"truckNumber":47,"width":6,"height":16,"left":"392px","top":"633.5px","rotation":0},{"truckNumber":48,"width":8,"height":20,"left":"412.641px","top":"654.852px","rotation":90},{"truckNumber":49,"width":8,"height":18,"left":"456.234px","top":"656.25px","rotation":90},{"truckNumber":50,"width":6,"height":14,"left":"484px","top":"641.5px","rotation":0},{"truckNumber":51,"width":8,"height":16,"left":"468.695px","top":"720.797px","rotation":90},{"truckNumber":52,"width":8,"height":18,"left":"431.367px","top":"718.125px","rotation":90},{"truckNumber":53,"width":8,"height":19,"left":"390.504px","top":"716.988px","rotation":90},{"truckNumber":54,"width":8,"height":10,"left":"290px","top":"406.5px","rotation":0},{"truckNumber":55,"width":8,"height":12,"left":"459px","top":"426.5px","rotation":0},{"truckNumber":56,"width":8,"height":10,"left":"528px","top":"426.5px","rotation":0},{"truckNumber":57,"width":8,"height":20,"left":"306px","top":"341.5px","rotation":0},{"truckNumber":58,"width":8,"height":20,"left":"308px","top":"296.5px","rotation":0},{"truckNumber":59,"width":8,"height":15,"left":"308px","top":"264.5px","rotation":0},{"truckNumber":60,"width":8,"height":19,"left":"342.504px","top":"246.988px","rotation":90},{"truckNumber":61,"width":8,"height":16,"left":"358px","top":"282.5px","rotation":0},{"truckNumber":62,"width":8,"height":17,"left":"359px","top":"319.5px","rotation":0},{"truckNumber":63,"width":8,"height":13,"left":"359px","top":"357.5px","rotation":0},{"truckNumber":64,"width":8,"height":14,"left":"601px","top":"442.5px","rotation":0},{"truckNumber":65,"width":5,"height":13,"left":"514px","top":"632.5px","rotation":0}];
             loadTrucks(defaultConfig);
         });
     </script>
