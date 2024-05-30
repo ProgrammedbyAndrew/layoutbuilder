@@ -256,7 +256,7 @@
         function createOrUpdateTruck() {
             const width = parseInt(document.getElementById('truck-width').value, 10);
             const length = parseInt(document.getElementById('truck-length').value, 10);
-            if (width >= 5 && width <= 10 && length >= 10 && length <= 40) {
+            if (width >= 1 && width <= 15 && length >= 1 && length <= 40) {
                 currentSize = { width, height: length };
                 if (selectedTruck) {
                     selectedTruck.style.width = (width * pixelToFootRatio) + 'px';
