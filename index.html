@@ -210,9 +210,9 @@
     </div>
     <div id="size-input">
         <label for="truck-width">Width (5-10 ft):</label>
-        <input type="number" id="truck-width" name="truck-width" min="5" max="10" value="8" step="1">
+        <input type="number" id="truck-width" name="truck-width" min="1" max="15" value="8" step="1">
         <label for="truck-length">Length (10-40 ft):</label>
-        <input type="number" id="truck-length" name="truck-length" min="10" max="40" value="24" step="1">
+        <input type="number" id="truck-length" name="truck-length" min="1" max="40" value="24" step="1">
         <button class="button red-button" id="get-truck" onclick="createTruck()">Get Food Truck</button>
         <button class="button" id="truck-action-button" style="display: none;" onclick="createOrUpdateTruck()">Update</button>
     </div>
