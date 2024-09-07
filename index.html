@@ -295,14 +295,24 @@
     truckNumberDiv.textContent = truckNumber;
     newTruck.appendChild(truckNumberDiv);
 
-    // Apply the dragging functionality to the new truck
+    // Apply the same event listeners as the existing trucks
+    newTruck.draggable = false;
     newTruck.onmousedown = function(e) {
-        dragMouseDown(e, newTruck);
+        dragMouseDown(e, newTruck);  // Ensure the dragging behavior is attached
+    };
+
+    newTruck.onclick = function(e) {
+        selectTruck(e);  // Ensure the selection behavior is attached
     };
 
     document.getElementById('parking-lot').appendChild(newTruck);
     showMessageBox();
 }
+
+
+
+
+
 
 
 
