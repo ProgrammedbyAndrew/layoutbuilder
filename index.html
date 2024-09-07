@@ -273,45 +273,38 @@
         }
 
         function createTruck() {
-            const width = parseInt(document.getElementById('truck-width').value, 10);
-            const length = parseInt(document.getElementById('truck-length').value, 10);
-            if (!currentSize || !(width >= 1 && width <= 10 && length >= 1 && length <= 40)) {
-                return; // If no size is selected or invalid size, do nothing.
-            }
+    const width = parseInt(document.getElementById('truck-width').value, 10);
+    const length = parseInt(document.getElementById('truck-length').value, 10);
 
-            const truckNumber = getNextTruckNumber();
-            const newTruck = document.createElement('div');
-            newTruck.className = 'food-truck';
-            newTruck.id = 'truck' + truckNumber;
-            newTruck.style.width = (width * pixelToFootRatio) + 'px';
-            newTruck.style.height = (length * pixelToFootRatio) + 'px';
-            newTruck.style.transform = 'rotate(0deg)'; // Reset rotation
+    if (!currentSize || !(width >= 1 && width <= 15 && length >= 1 && length <= 40)) {
+        return; // If no size is selected or invalid size, do nothing.
+    }
 
-            // Place the truck near the size-input box
-            const sizeInputBox = document.getElementById('size-input').getBoundingClientRect();
-            const parkingLotRect = document.getElementById('parking-lot').getBoundingClientRect();
-            const newLeft = sizeInputBox.left + sizeInputBox.width + 10 - parkingLotRect.left;
-            const newTop = sizeInputBox.top + sizeInputBox.height / 2 - newTruck.offsetHeight / 2 - parkingLotRect.top;
+    const truckNumber = getNextTruckNumber();
+    const newTruck = document.createElement('div');
+    newTruck.className = 'food-truck';
+    newTruck.id = 'truck' + truckNumber;
+    newTruck.style.width = (width * pixelToFootRatio) + 'px';
+    newTruck.style.height = (length * pixelToFootRatio) + 'px';
+    newTruck.style.transform = 'rotate(0deg)'; // Reset rotation
+    newTruck.style.left = '100px';  // Safe initial position
+    newTruck.style.top = '100px';
 
-            newTruck.style.left = newLeft + 'px';
-            newTruck.style.top = newTop + 'px';
+    const truckNumberDiv = document.createElement('div');
+    truckNumberDiv.className = 'truck-number';
+    truckNumberDiv.textContent = truckNumber;
+    newTruck.appendChild(truckNumberDiv);
 
-            const truckNumberDiv = document.createElement('div');
-            truckNumberDiv.className = 'truck-number';
-            truckNumberDiv.textContent = truckNumber;
-            newTruck.appendChild(truckNumberDiv);
+    // Apply the dragging functionality to the new truck
+    newTruck.onmousedown = function(e) {
+        dragMouseDown(e, newTruck);
+    };
 
-            newTruck.draggable = false;
-            newTruck.onmousedown = function(e) {
-                dragMouseDown(e, newTruck);
-            };
-            newTruck.onclick = function(e) {
-                selectTruck(e);
-            };
+    document.getElementById('parking-lot').appendChild(newTruck);
+    showMessageBox();
+}
 
-            document.getElementById('parking-lot').appendChild(newTruck);
-            showMessageBox();
-        }
+
 
         function showMessageBox() {
             const messageBox = document.getElementById('message-box');
